@@ -1,6 +1,6 @@
 /* ============================================================
-   GAME DISCOVER — DESIGN SYSTEM v2.0
-   Fase 1: Foundation, CSS Variables, Navbar, Micro-animations
+   GAME DISCOVER — DESIGN SYSTEM
+   Foundation, CSS Variables, Navbar, Micro-animations
    ============================================================ */
 
 /* ── Google Fonts (Outlet via @import) diload di base.html ── */
@@ -543,7 +543,7 @@ a:hover { color: #80b4ff; }
 }
 
 /* ============================================================
-   FASE 2 — AUTH SPLIT LAYOUT & ONBOARDING
+   AUTH SPLIT LAYOUT & ONBOARDING
    ============================================================ */
 
 /* ── A. AUTH SPLIT (2-column) ────────────────────────────── */
@@ -976,7 +976,7 @@ a:hover { color: #80b4ff; }
 }
 
 /* ============================================================
-   FASE 3 — HOME PAGE UPGRADE
+   HOME PAGE & CATALOG
    Hero Banner Carousel, Enhanced Cards, Filter Chips, Pagination
    ============================================================ */
 
@@ -1617,7 +1617,7 @@ a:hover { color: #80b4ff; }
 }
 
 /* ============================================================
-   FASE 4 — GAME DETAIL PAGE UPGRADE
+   GAME DETAIL PAGE
    Hero Backdrop, Showcase Card, Review Ratio Bar, Star Rating
    ============================================================ */
 
@@ -1908,7 +1908,7 @@ a:hover { color: #80b4ff; }
 }
 
 /* ============================================================
-   FASE 5 — MY LIBRARY PAGE UPGRADE
+   MY LIBRARY PAGE
    Profile Header, Stats Tiles, AI Unlock Alert, Grid/List Views
    ============================================================ */
 

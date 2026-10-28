@@ -80,7 +80,7 @@ def current_user(request: Request, conn=Depends(db)):
 
 
 def render(request: Request, name: str, ctx: dict, status: int = 200):
-    """Render template; bila template belum ada (sebelum Fase 5) kembalikan JSON."""
+    """Render template; bila template belum ada kembalikan JSON."""
     if (BASE / "templates" / name).exists():
         return templates.TemplateResponse(request, name, ctx, status_code=status)
     return JSONResponse({"template": name, **ctx}, status_code=status)
