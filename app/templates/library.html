@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}My Library - Game Discover{% endblock %}
+
+{% block content %}
+{# ── Calculations in Jinja2 ────────────────────────────────────── #}
+{% set rated_items = items | selectattr('rating') | list %}
+{% set total_rated = rated_items | length %}
+{% set total_items = items | length %}
+{% set unrated_count = total_items - total_rated %}
+{% set avg_rating = ('%.1f'|format(rated_items | map(attribute='rating') | sum / total_rated)) if total_rated > 0 else '0.0' %}
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║ 1. GAMER PROFILE & STATS HEADER                          ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="library-header-card mb-4">
+  <div class="row align-items-center g-4">
+    <!-- User Info & Avatar -->
+    <div class="col-lg-5">
+      <div class="d-flex align-items-center gap-3">
+        <div class="library-avatar">
+          {{ user.username[0].upper() }}
+        </div>
+        <div>
+          <h3 class="mb-1 fw-bold text-white">Koleksi Game Milik {{ user.username }}</h3>
+          <p class="text-body-secondary small mb-2">Kelola perpustakaan digital dan rating game favoritmu</p>
+          <!-- Favorite Genres Pills -->
+          <div class="d-flex flex-wrap gap-1">
+            {% if user.favorite_genres %}
+              {% for g in user.favorite_genres.split('|') if g %}
+              <span class="badge text-bg-secondary fs-8">{{ g }}</span>
+              {% endfor %}
+            {% else %}
+              <span class="badge text-bg-secondary fs-8">Gamer</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Tiles Grid -->
+    <div class="col-lg-7">
+      <div class="row row-cols-2 row-cols-sm-4 g-2">
+        <div class="col">
+          <div class="stat-tile">
+            <span class="stat-icon">🎮</span>
+            <div class="stat-val">{{ total_items }}</div>
+            <div class="stat-lbl">Koleksi Game</div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-tile">
+            <span class="stat-icon">⭐</span>
+            <div class="stat-val">{{ total_rated }}<small class="fs-8 text-muted">/{{ total_items }}</small></div>
+            <div class="stat-lbl">Telah Dirating</div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-tile">
+            <span class="stat-icon">🏆</span>
+            <div class="stat-val">{{ avg_rating }} <small class="fs-8 text-warning">★</small></div>
+            <div class="stat-lbl">Rata-rata Rating</div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-tile">
+            <span class="stat-icon">🤖</span>
+            <div class="stat-val fs-7 text-truncate">
+              {% if total_rated >= 5 %}
+              <span class="text-success fw-bold">Hybrid AI</span>
+              {% else %}
+              <span class="text-info fw-bold">{{ total_rated }}/5 Rating</span>
+              {% endif %}
+            </div>
+            <div class="stat-lbl">Rekomendasi</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hybrid Recommender Unlock Progress Alert -->
+  {% if total_items > 0 %}
+    {% if total_rated < 5 %}
+    <div class="hybrid-unlock-banner mt-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <span class="fs-3">💡</span>
+          <div>
+            <h6 class="mb-1 text-white fw-semibold">Buka Rekomendasi Hybrid AI (Collaborative Filtering)</h6>
+            <p class="small text-body-secondary mb-0">
+              Kamu telah memberi rating ke <strong>{{ total_rated }}</strong> game. Beri rating ke <strong>{{ 5 - total_rated }}</strong> game lagi untuk membuka rekomendasi hybrid berakurasi tinggi!
+            </p>
+          </div>
+        </div>
+        <div class="progress-wrap flex-grow-1 flex-md-grow-0" style="min-width: 180px;">
+          <div class="d-flex justify-content-between small mb-1">
+            <span class="text-muted fs-8">Progres AI:</span>
+            <span class="text-primary fw-bold fs-8">{{ total_rated }}/5 ({{ (total_rated / 5 * 100)|int }}%)</span>
+          </div>
+          <div class="progress" style="height: 6px; background: rgba(255,255,255,0.08);">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ total_rated / 5 * 100 }}%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="hybrid-active-banner mt-4">
+      <div class="d-flex align-items-center gap-2">
+        <span class="badge-pulse-dot bg-success"></span>
+        <span class="small text-success fw-semibold">
+          ✨ <strong>Sistem Rekomendasi Hybrid AI Aktif!</strong> Rekomendasi kamu kini dioptimalkan dengan kombinasi Content-Based + Item Collaborative Filtering.
+        </span>
+      </div>
+    </div>
+    {% endif %}
+  {% endif %}
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║ 2. EMPTY STATE (Jika Belum Punya Game)                   ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+{% if not items %}
+<div class="empty-library-state">
+  <div class="empty-library-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="6" width="20" height="12" rx="3"></rect>
+      <path d="M6 12h4m-2-2v4"></path>
+      <circle cx="15" cy="11" r="1"></circle>
+      <circle cx="18" cy="13" r="1"></circle>
+    </svg>
+  </div>
+  <h4 class="fw-bold mb-2 text-white">Library Kamu Masih Kosong</h4>
+  <p class="text-body-secondary mb-4 mx-auto" style="max-width: 500px;">
+    Kamu belum menambahkan game apa pun ke dalam koleksimu. Mulai jelajahi ribuan game menarik di katalog dan tambahkan game favoritmu!
+  </p>
+  <a href="/" class="btn btn-primary btn-lg px-4 shadow">
+    <span>Jelajahi Katalog Rekomendasi &raquo;</span>
+  </a>
+</div>
+{% else %}
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║ 3. LIBRARY TOOLBAR (Filter & View Switcher)              ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="library-toolbar">
+  <!-- Filter Tabs -->
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <button class="library-filter-tab active" data-filter="all">
+      Semua <span class="badge rounded-pill bg-dark-subtle ms-1">{{ total_items }}</span>
+    </button>
+    <button class="library-filter-tab" data-filter="rated">
+      Sudah Dirating <span class="badge rounded-pill bg-dark-subtle ms-1">{{ total_rated }}</span>
+    </button>
+    <button class="library-filter-tab" data-filter="unrated">
+      Belum Dirating <span class="badge rounded-pill bg-dark-subtle ms-1">{{ unrated_count }}</span>
+    </button>
+  </div>
+
+  <!-- Search & View Toggle -->
+  <div class="d-flex align-items-center gap-3">
+    <!-- Quick Search Input -->
+    <div class="library-search-box">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="M21 21l-4.35-4.35"></path>
+      </svg>
+      <input type="text"
+             id="librarySearchInput"
+             class="border-0 bg-transparent text-white small"
+             placeholder="Cari di library..."
+             autocomplete="off"
+             style="outline: none; width: 140px;">
+    </div>
+
+    <!-- Grid / List Switcher -->
+    <div class="btn-group view-switcher-group" role="group" aria-label="Tampilan Library">
+      <button type="button" class="view-toggle-btn active" id="viewGridBtn" title="Tampilan Grid">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"></rect>
+          <rect x="14" y="3" width="7" height="7"></rect>
+          <rect x="14" y="14" width="7" height="7"></rect>
+          <rect x="3" y="14" width="7" height="7"></rect>
+        </svg>
+      </button>
+      <button type="button" class="view-toggle-btn" id="viewListBtn" title="Tampilan List">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║ 4. LIBRARY ITEMS SHOWCASE (Grid / List)                  ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<div class="library-container view-grid" id="libraryContainer">
+  {% for it in items %}
+  <div class="library-item-card"
+       data-rated="{{ 'true' if it.rating else 'false' }}"
+       data-title="{{ it.title|lower }}"
+       data-game-id="{{ it.game_id }}">
+    
+    <!-- Thumbnail Image -->
+    <a href="/game/{{ it.game_id }}" class="library-item-thumb">
+      <img src="{{ it.image_url }}"
+           alt="{{ it.title }}"
+           loading="lazy"
+           onerror="this.onerror=null;this.src='/static/img/placeholder.svg'">
+      
+      <!-- Rating Badge Status Overlay -->
+      <div class="library-badge-overlay">
+        {% if it.rating == 5 %}
+        <span class="lib-rating-pill badge-masterpiece">⭐ Masterpiece</span>
+        {% elif it.rating == 4 %}
+        <span class="lib-rating-pill badge-recommended">👍 Recommended</span>
+        {% elif it.rating == 3 %}
+        <span class="lib-rating-pill badge-good">👌 Good</span>
+        {% elif it.rating and it.rating <= 2 %}
+        <span class="lib-rating-pill badge-mediocre">⚠️ Mediocre</span>
+        {% else %}
+        <span class="lib-rating-pill badge-unrated">Belum Dirating</span>
+        {% endif %}
+      </div>
+    </a>
+
+    <!-- Card Content -->
+    <div class="library-item-body">
+      <!-- Title & Tags -->
+      <div class="library-item-info">
+        <h5 class="library-item-title mb-1">
+          <a href="/game/{{ it.game_id }}" class="text-decoration-none text-white text-truncate d-block">
+            {{ it.title }}
+          </a>
+        </h5>
+
+        <div class="library-tags d-flex flex-wrap gap-1 mb-2">
+          {% for t in it.tag_list[:3] %}
+          <a href="/?tag={{ t|urlencode }}#katalog" class="badge text-bg-secondary text-decoration-none fs-8">
+            {{ t }}
+          </a>
+          {% endfor %}
+        </div>
+
+        <small class="text-body-secondary fs-8 d-block mb-3">
+          📅 Ditambahkan: {{ it.added_at }}
+        </small>
+      </div>
+
+      <!-- Star Rating Control Box -->
+      <div class="library-item-rating">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="fs-8 text-body-secondary fw-semibold">Beri Rating:</span>
+          <span class="rating-text fs-8 text-warning fw-bold">
+            {{ ("Rating: %d/5 ★"|format(it.rating)) if it.rating else "Belum dirating" }}
+          </span>
+        </div>
+
+        <div class="stars library-stars" data-game="{{ it.game_id }}">
+          {% for n in range(1, 6) %}
+          <span class="star {{ 'active' if (it.rating or 0) >= n }}"
+                data-rate="{{ n }}"
+                title="{{ n }} dari 5 bintang">&#9733;</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- No Search Results in Library Hint -->
+<div class="d-none text-center py-5" id="libraryNoResults">
+  <div class="fs-1 mb-2">🔍</div>
+  <h5 class="text-white">Tidak ada game di library yang cocok</h5>
+  <p class="text-body-secondary small">Coba gunakan kata kunci pencarian yang lain.</p>
+</div>
+
+{% endif %}
+
+{% endblock %}

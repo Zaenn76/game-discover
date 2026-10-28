@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card %}
+{% block title %}{{ game.title }} - Game Discover{% endblock %}
+
+{% block full_page %}
+<div class="detail-page-wrapper">
+  <!-- Immersive Blurred Backdrop -->
+  <div class="detail-hero-backdrop" style="background-image: url('{{ game.image_url }}');">
+    <div class="detail-hero-overlay"></div>
+  </div>
+
+  <main class="container detail-container py-4">
+    <!-- Breadcrumb Nav -->
+    <nav class="detail-breadcrumbs mb-4" aria-label="Breadcrumb">
+      <a href="/" class="crumb-link">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+          <polyline points="9 22 9 12 15 12 15 22"></polyline>
+        </svg>
+        <span>Beranda</span>
+      </a>
+      <span class="crumb-sep">/</span>
+      <a href="/#katalog" class="crumb-link">Katalog</a>
+      <span class="crumb-sep">/</span>
+      <span class="crumb-current">{{ game.title }}</span>
+    </nav>
+
+    <!-- Main Game Showcase Card -->
+    <div class="detail-showcase-card mb-5">
+      <div class="row g-4">
+        <!-- Left Column: Poster Image & Badges -->
+        <div class="col-lg-6 col-xl-7">
+          <div class="detail-poster-wrap">
+            <img class="detail-poster-img"
+                 src="{{ game.image_url }}"
+                 alt="{{ game.title }}"
+                 loading="eager"
+                 onerror="this.onerror=null;this.src='/static/img/placeholder.svg'">
+
+            <!-- Top Corner Badges -->
+            <div class="detail-poster-badges">
+              {% if game.positive_ratio is not none %}
+              <span class="card-ratio-badge {% if game.positive_ratio >= 75 %}ratio-high{% elif game.positive_ratio >= 50 %}ratio-mid{% else %}ratio-low{% endif %}">
+                👍 {{ game.positive_ratio }}% Positif
+              </span>
+              {% endif %}
+
+              {% if in_library %}
+              <span class="badge text-bg-success badge-owned shadow">
+                ✓ In Library
+              </span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Game Meta & Actions -->
+        <div class="col-lg-6 col-xl-5 d-flex flex-column justify-content-between">
+          <div>
+            <!-- Game Title -->
+            <h1 class="detail-title mb-2">{{ game.title }}</h1>
+
+            <!-- Genre Tags -->
+            <div class="detail-tags mb-3 d-flex flex-wrap gap-1">
+              {% for t in game.tag_list %}
+              <a href="/?tag={{ t|urlencode }}#katalog" class="badge text-bg-info text-decoration-none game-tag-pill">
+                {{ t }}
+              </a>
+              {% endfor %}
+            </div>
+
+            <!-- Review Ratio Visual Progress Bar -->
+            <div class="review-ratio-panel mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="ratio-text-status">
+                  {% if game.positive_ratio is not none %}
+                    {% if game.positive_ratio >= 80 %}
+                      🌟 Sangat Positif
+                    {% elif game.positive_ratio >= 65 %}
+                      👍 Positif
+                    {% elif game.positive_ratio >= 50 %}
+                      ⚖️ Ulasan Campuran
+                    {% else %}
+                      👎 Kurang Bagus
+                    {% endif %}
+                  {% else %}
+                    Belum Ada Ulasan
+                  {% endif %}
+                </span>
+                <span class="ratio-percentage">
+                  {{ (game.positive_ratio ~ "%") if game.positive_ratio is not none else "N/A" }}
+                </span>
+              </div>
+              <div class="progress ratio-progress-bar">
+                <div class="progress-bar ratio-progress-fill"
+                     role="progressbar"
+                     style="width: {{ game.positive_ratio or 0 }}%;"
+                     aria-valuenow="{{ game.positive_ratio or 0 }}"
+                     aria-valuemin="0"
+                     aria-valuemax="100"></div>
+              </div>
+            </div>
+
+            <!-- Metadata Pills Row -->
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <div class="detail-meta-pill">
+                <span class="text-body-secondary">📅 Rilis:</span>
+                <strong>{{ game.release_date or "Tersedia Sekarang" }}</strong>
+              </div>
+              <div class="detail-meta-pill">
+                <span class="text-body-secondary">🏷️ Status:</span>
+                <strong class="text-success">{{ "Free to Play" if not game.price else "Digital Download" }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Purchase / Library Action Card -->
+          <div class="detail-action-card mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="text-body-secondary small">Harga Resmi:</span>
+              <span class="detail-price-badge {{ 'free' if not game.price }}">
+                {{ "FREE" if not game.price else "$%.2f"|format(game.price) }}
+              </span>
+            </div>
+
+            <!-- Add to Library / Owned CTA -->
+            <div id="libraryActionBox">
+              {% if in_library %}
+              <div class="d-grid gap-2">
+                <button class="btn btn-success btn-lg py-3 fw-bold disabled" style="opacity: 0.95;">
+                  ✓ Sudah Ada di Library
+                </button>
+                <a href="/library" class="btn btn-outline-light btn-sm py-2">
+                  Buka My Library &raquo;
+                </a>
+              </div>
+              {% else %}
+              <button class="btn btn-primary btn-lg w-100 py-3 fw-bold detail-add-btn"
+                      data-add="{{ game.game_id }}"
+                      id="detailAddBtn">
+                + Tambah ke Library
+              </button>
+              {% endif %}
+            </div>
+
+            <!-- Interactive Star Rating in Detail Page -->
+            <div class="detail-rating-card mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-semibold small text-body-secondary">Rating Kamu:</span>
+                <span class="rating-text small text-warning fw-bold">
+                  {{ ("Rating: %d/5 ★"|format(my_rating)) if my_rating else "Belum dirating" }}
+                </span>
+              </div>
+
+              <div class="stars detail-stars" data-game="{{ game.game_id }}" id="detailStarBox">
+                {% for n in range(1, 6) %}
+                <span class="star {{ 'active' if (my_rating or 0) >= n }}"
+                      data-rate="{{ n }}"
+                      title="{{ n }} dari 5 bintang">&#9733;</span>
+                {% endfor %}
+              </div>
+
+              {% if not in_library %}
+              <div class="rating-hint small text-muted mt-2" id="ratingHint">
+                💡 Tambahkan ke library terlebih dahulu untuk memberikan rating.
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About & Description Section -->
+    <div class="detail-desc-card mb-5">
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <span class="section-icon-wrap">📖</span>
+        <h4 class="section-title mb-0">Tentang Game Ini</h4>
+      </div>
+      <div class="detail-desc-content">
+        <p class="lead-desc">{{ game.description or "Tidak ada deskripsi rinci untuk game ini." }}</p>
+      </div>
+
+      <!-- Complete Tags Cloud -->
+      {% if game.tag_list %}
+      <div class="mt-4 pt-3 border-top">
+        <h6 class="small text-body-secondary text-uppercase mb-2 fw-bold" style="letter-spacing: 0.05em;">Tags Terkait</h6>
+        <div class="d-flex flex-wrap gap-2">
+          {% for t in game.tag_list %}
+          <a href="/?tag={{ t|urlencode }}#katalog" class="genre-chip text-decoration-none">
+            {{ t }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Similar Games Section -->
+    {% if similar %}
+    <section class="similar-games-section mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <span class="section-icon-wrap">🎮</span>
+          <div>
+            <h4 class="section-title mb-0">Game Serupa yang Direkomendasikan</h4>
+            <p class="text-body-secondary small mb-0">Dipilih oleh AI Content-Based berdasarkan tags & genre yang identik</p>
+          </div>
+        </div>
+        <span class="badge text-bg-primary rounded-pill px-3 py-2 fs-7">{{ similar|length }} Game Serupa</span>
+      </div>
+
+      <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3">
+        {% for g in similar %}{{ card(g, [game.game_id] if in_library else []) }}{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}

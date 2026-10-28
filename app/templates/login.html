@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Login — Game Discover{% endblock %}
+
+{% block full_page %}
+<div class="auth-split">
+
+  <!-- ═══ LEFT PANEL: Branding ═══ -->
+  <div class="auth-left">
+    <!-- Animated background blobs -->
+    <div class="auth-blob auth-blob-1"></div>
+    <div class="auth-blob auth-blob-2"></div>
+    <div class="auth-blob auth-blob-3"></div>
+
+    <!-- Content -->
+    <div class="auth-left-content">
+      <a href="/" class="auth-brand">
+        <span>🎮</span> Game Discover
+      </a>
+      <h2 class="auth-headline">Temukan game<br><span class="auth-headline-accent">favoritmu.</span></h2>
+      <p class="auth-desc">Platform rekomendasi game berbasis AI — personal, akurat, dan selalu berkembang seiring seleramu.</p>
+
+      <!-- Floating game cards mockup -->
+      <div class="auth-mockup">
+        <div class="auth-mock-card" style="--d:0s">🎮 Action RPG</div>
+        <div class="auth-mock-card" style="--d:0.3s">🧙 Fantasy Quest</div>
+        <div class="auth-mock-card" style="--d:0.6s">🚀 Space Adventure</div>
+        <div class="auth-mock-card" style="--d:0.9s">🏰 Strategy Wars</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ RIGHT PANEL: Form ═══ -->
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+      <!-- Header -->
+      <div class="mb-4">
+        <h3 class="auth-form-title">Selamat datang!</h3>
+        <p class="auth-form-sub">Masuk ke akun Game Discover kamu</p>
+      </div>
+
+      {% if error %}
+      <div class="alert alert-danger py-2 mb-3">⚠️ {{ error }}</div>
+      {% endif %}
+
+      <form method="post" action="/login" id="loginForm">
+        <!-- Username -->
+        <div class="mb-3">
+          <label class="form-label" for="login-username">Username</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <input type="text" id="login-username" name="username"
+                   class="form-control ps-icon" required autofocus
+                   placeholder="Masukkan username">
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="mb-4">
+          <label class="form-label" for="login-password">Password</label>
+          <div class="input-icon-wrap">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="login-password" name="password"
+                   class="form-control px-icon" required
+                   placeholder="••••••••">
+            <button type="button" class="input-icon-right pwd-toggle" data-target="login-password" tabindex="-1">
+              <svg class="eye-show" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-hide" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button class="btn btn-primary w-100 py-2" type="submit" id="loginBtn">
+          <span class="btn-label">Masuk</span>
+          <span class="btn-spinner d-none">
+            <span class="spinner-border spinner-border-sm me-2"></span>Memuat...
+          </span>
+        </button>
+      </form>
+
+      <p class="mt-4 mb-0 text-center small" style="color: var(--text-secondary);">
+        Belum punya akun?
+        <a href="/register" class="auth-link">Daftar sekarang →</a>
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

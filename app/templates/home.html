@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card %}
+{% block title %}Home - Game Discover{% endblock %}
+
+{% block content %}
+
+{# ── 1. HERO BANNER CAROUSEL (Top Recommendations) ─────────────── #}
+{% if page == 1 and not q and not tag and recommended %}
+<section class="hero-section mb-5 position-relative">
+  <div class="hero-carousel" id="heroCarousel">
+    <div class="hero-slides">
+      {% for g in recommended[:4] %}
+      <div class="hero-slide {{ 'active' if loop.first }}"
+           data-slide-index="{{ loop.index0 }}"
+           style="--hero-bg: url('{{ g.image_url }}');">
+        <div class="hero-bg-layer" style="background-image: url('{{ g.image_url }}');"></div>
+        <div class="hero-overlay"></div>
+        
+        <div class="hero-content">
+          <div class="hero-badge-wrap mb-2">
+            <span class="hero-badge">
+              <span class="badge-pulse-dot"></span> Top Match
+            </span>
+            {% if g.positive_ratio is not none and g.positive_ratio >= 80 %}
+            <span class="hero-rating-badge">👍 {{ g.positive_ratio }}% Positif</span>
+            {% endif %}
+          </div>
+
+          <h2 class="hero-title">{{ g.title }}</h2>
+
+          <div class="hero-tags mb-3">
+            {% for t in g.tag_list[:4] %}
+            <a href="/?tag={{ t|urlencode }}" class="badge text-bg-info text-decoration-none">{{ t }}</a>
+            {% endfor %}
+            {% if g.release_date %}
+            <span class="badge text-bg-secondary">{{ g.release_date }}</span>
+            {% endif %}
+          </div>
+
+          {% if g.description %}
+          <p class="hero-desc mb-4">{{ g.description }}</p>
+          {% endif %}
+
+          <div class="hero-actions d-flex flex-wrap align-items-center gap-3">
+            <a href="/game/{{ g.game_id }}" class="btn btn-primary btn-lg hero-cta-btn">
+              <span>Lihat Detail</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+
+            {% if g.game_id in owned_ids %}
+            <a href="/library" class="btn btn-success btn-lg hero-owned-btn">
+              ✓ In Library
+            </a>
+            {% else %}
+            <button class="btn btn-outline-light btn-lg hero-add-btn" data-add="{{ g.game_id }}">
+              + Tambah ke Library
+            </button>
+            {% endif %}
+
+            <div class="hero-price-tag ms-sm-2">
+              {{ "FREE" if not g.price else "$%.2f"|format(g.price) }}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Navigation Arrows -->
+    <button class="hero-nav-btn hero-prev" id="heroPrevBtn" aria-label="Previous slide">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    <button class="hero-nav-btn hero-next" id="heroNextBtn" aria-label="Next slide">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+
+    <!-- Slide Indicators -->
+    <div class="hero-indicators" id="heroIndicators">
+      {% for g in recommended[:4] %}
+      <button class="hero-indicator {{ 'active' if loop.first }}" data-slide="{{ loop.index0 }}" aria-label="Slide {{ loop.index }}"></button>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# ── 2. RECOMMENDED GRID SECTION ────────────────────────────────── #}
+<section class="recommended-section mb-5">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <span class="section-icon-wrap">✨</span>
+      <div>
+        <h4 class="section-title mb-0">Rekomendasi Untukmu</h4>
+        <p class="text-body-secondary small mb-0">Dipersonalisasi sesuai genre favorit & library kamu</p>
+      </div>
+    </div>
+    <span class="badge text-bg-primary rounded-pill px-3 py-2 fs-7">{{ recommended|length }} Game</span>
+  </div>
+
+  <div class="row row-cols-2 row-cols-md-3 row-cols-xl-6 g-3">
+    {% for g in recommended %}{{ card(g, owned_ids) }}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{# ── 3. KATALOG GAME & FILTER BAR ───────────────────────────────── #}
+<section class="catalog-section" id="katalog">
+  <div class="catalog-header-card mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+      <div>
+        <h4 class="section-title mb-1">
+          Katalog Game
+          <span class="catalog-count-badge">{{ total }} game</span>
+        </h4>
+        <p class="text-body-secondary small mb-0">Jelajahi seluruh koleksi game digital terbaik</p>
+      </div>
+
+      <!-- Search Form -->
+      <form class="search-form" method="get" action="/#katalog" id="searchForm">
+        <input type="hidden" name="tag" value="{{ tag }}">
+        <div class="search-input-box">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.35-4.35"></path>
+          </svg>
+          <input type="text"
+                 name="q"
+                 id="searchInput"
+                 value="{{ q }}"
+                 class="search-input"
+                 placeholder="Cari judul game..."
+                 autocomplete="off">
+          {% if q %}
+          <a href="/?tag={{ tag|urlencode }}#katalog" class="search-clear-btn" title="Hapus pencarian">✕</a>
+          {% endif %}
+          <button type="submit" class="search-submit-btn">Cari</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Horizontal Genre Chips -->
+    <div class="genre-chips-container">
+      <div class="genre-chips-scroll">
+        <a href="/?q={{ q|urlencode }}#katalog"
+           class="genre-chip {{ 'active' if not tag }}">
+          Semua Genre
+        </a>
+        {% for g in genres %}
+        <a href="/?q={{ q|urlencode }}&tag={{ g|urlencode }}#katalog"
+           class="genre-chip {{ 'active' if g == tag }}">
+          {{ g }}
+          {% if g == tag %}
+          <span class="chip-remove" title="Hapus filter genre">✕</span>
+          {% endif %}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Active Filter Tags (if filtered) -->
+    {% if q or tag %}
+    <div class="active-filters-row mt-3 pt-3 border-top d-flex align-items-center gap-2 flex-wrap">
+      <span class="small text-body-secondary">Filter Aktif:</span>
+      {% if q %}
+      <span class="active-filter-pill">
+        Kata kunci: <strong>"{{ q }}"</strong>
+        <a href="/?tag={{ tag|urlencode }}#katalog" class="filter-remove" title="Hapus pencarian">✕</a>
+      </span>
+      {% endif %}
+      {% if tag %}
+      <span class="active-filter-pill">
+        Genre: <strong>"{{ tag }}"</strong>
+        <a href="/?q={{ q|urlencode }}#katalog" class="filter-remove" title="Hapus genre">✕</a>
+      </span>
+      {% endif %}
+      <a href="/#katalog" class="btn btn-sm btn-link text-danger p-0 ms-auto text-decoration-none">
+        Reset Semua Filter
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  {# ── 4. GAME GRID ─────────────────────────────────────────────── #}
+  {% if games %}
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3 mb-4">
+    {% for g in games %}{{ card(g, owned_ids, True) }}{% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-catalog-state text-center py-5 my-4">
+    <div class="empty-icon mb-3">🔍</div>
+    <h5>Tidak ada game yang cocok</h5>
+    <p class="text-body-secondary mb-4">Coba ubah kata kunci pencarian atau pilih genre yang berbeda.</p>
+    <a href="/#katalog" class="btn btn-primary px-4">Reset Pencarian</a>
+  </div>
+  {% endif %}
+
+  {# ── 5. NUMBERED PAGINATION ───────────────────────────────────── #}
+  {% if pages > 1 %}
+  <nav class="pagination-wrapper mt-5 d-flex justify-content-center" aria-label="Katalog pagination">
+    <div class="pagination-pills">
+      <!-- Prev Button -->
+      {% if page > 1 %}
+      <a class="page-pill-btn prev" href="/?q={{ q|urlencode }}&tag={{ tag|urlencode }}&page={{ page - 1 }}#katalog" aria-label="Halaman sebelumnya">
+        ‹ Sebelumnya
+      </a>
+      {% else %}
+      <span class="page-pill-btn prev disabled" aria-disabled="true">‹ Sebelumnya</span>
+      {% endif %}
+
+      <!-- Numbered Buttons -->
+      <div class="page-numbers-group">
+        {% for p in range(1, pages + 1) %}
+          {% if p == 1 or p == pages or (p >= page - 2 and p <= page + 2) %}
+          <a class="page-number-btn {{ 'active' if p == page }}"
+             href="/?q={{ q|urlencode }}&tag={{ tag|urlencode }}&page={{ p }}#katalog">
+            {{ p }}
+          </a>
+          {% elif p == page - 3 or p == page + 3 %}
+          <span class="page-ellipsis">…</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <!-- Next Button -->
+      {% if page < pages %}
+      <a class="page-pill-btn next" href="/?q={{ q|urlencode }}&tag={{ tag|urlencode }}&page={{ page + 1 }}#katalog" aria-label="Halaman berikutnya">
+        Berikutnya ›
+      </a>
+      {% else %}
+      <span class="page-pill-btn next disabled" aria-disabled="true">Berikutnya ›</span>
+      {% endif %}
+    </div>
+  </nav>
+  {% endif %}
+</section>
+
+{% endblock %}
